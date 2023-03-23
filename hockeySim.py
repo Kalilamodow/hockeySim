@@ -4,6 +4,7 @@ MAXCHANCE = 100
 
 
 class BruhException(Exception):
+    '''exception for "huh"'''
     def __init__(self):
         print('how did you even MANAGE to screw that up?')
         input('>>> press enter to continue')
@@ -16,28 +17,30 @@ case = lambda lvl: randint(0, lvl) == randint(0, lvl)
 
 
 def secs_to_mins_secs(seconds: int) -> str:
-    m = 0
-    sc = seconds
+    '''Takes an input such as 1200 and converts it to MM:SS format such as 20:00'''
+    mins = 0
+    osc = seconds
 
-    while sc > 59:
-        m += 1
-        sc -= 60
-    if len(str(m)) < 2:
-        m = '0' + str(m)
-    if len(str(sc)) < 2:
-        sc = '0' + str(sc)
-    return f'{m}:{sc}'
+    while osc > 59:
+        mins += 1
+        osc -= 60
+    if len(str(mins)) < 2:
+        mins = '0' + str(mins)
+    if len(str(osc)) < 2:
+        osc = '0' + str(osc)
+    return f'{mins}:{osc}'
 
 
 def create_actions_list(action_chances: dict) -> list:
+    '''Create a list of actions based on a dict'''
     r = []
     chance_of_penalty = action_chances['penalty']
     chance_of_sog = action_chances['sog']
     chance_of_nothing = (MAXCHANCE + 1) - (chance_of_sog + chance_of_penalty)
 
-    [r.append('penalty') for _ in range(chance_of_penalty)]
-    [r.append('sog') for _ in range(chance_of_sog)]
-    [r.append('') for _ in range(chance_of_nothing)]
+    _ = [r.append('penalty') for _ in range(chance_of_penalty)]
+    _ = [r.append('sog') for _ in range(chance_of_sog)]
+    _ = [r.append('') for _ in range(chance_of_nothing)]
     return r
 
 
@@ -70,11 +73,11 @@ occurrences = (
     teamActionsList[0].count(1) + teamActionsList[1].count(1) + teamActionsList[2].count(1),
     teamActionsList[0].count(2) + teamActionsList[1].count(2) + teamActionsList[2].count(2)
 )
-prediction = 1 if occurrences[1] > occurrences[2] else 2 if occurrences[2] > occurrences[1] else 'idk'
+pred = 1 if occurrences[1] > occurrences[2] else 2 if occurrences[2] > occurrences[1] else 'idk'
 
-if prediction == 1:
+if pred == 1:
     out.append(f'Prediction: TEAM 1 by {str(round((occurrences[1] - occurrences[2]) / 3))}0')
-elif prediction == 2:
+elif pred == 2:
     out.append(f'Prediction: TEAM 2 by {str(round((occurrences[2] - occurrences[1]) / 3))}0')
 else:
     out.append("The teams seem equally matched! We'll see who'll win...")
@@ -113,7 +116,7 @@ shotsOnGoal = {
 # Create lists of odds/actions for teams
 startingOdds = {
     'penalty': 3,
-    'sog': 35
+    'sog': 30
 }
 odds = {
     'TEAM 1': startingOdds,
@@ -213,7 +216,7 @@ while period < 4:
                         out.append(f"Wait... it's under review... there might have been\
 {waiveReasons[randint(0, 2)]}!")
                         if case(3):
-                            out.append("The goal has been waived! Unlucky for {}".format(team))
+                            out.append(f"The goal has been waived! Unlucky for {team}")
                             lastAction = ''
                         else:
                             out.append(f"They didn't have enough evidence! It's still a goal! \
@@ -337,7 +340,7 @@ else:
 
 # Create final scoreboard
 endingOut = f'''
-\tFINAL SCORE: {goals['TEAM 1']}-{goals['TEAM 2']} {endResultType}
+\tFINAL SCORE: {goals['TEAM 1']}-{goals['TEAM 2']}{endResultType}
 \tSOG - TEAM 1: {shotsOnGoal['TEAM 1']}
 \tSOG - TEAM 2: {shotsOnGoal['TEAM 2']}
 \tGOALIE SV% - TEAM 1: {goalie1SVP}%
@@ -354,4 +357,4 @@ output = '\n'.join(out) + '\n\n' + endingOut
 print(output)
 
 # For running the file directly
-endInput = input('\n\n>>>press enter to continue')
+endInput = input('\n\n>>> press enter to continue')
