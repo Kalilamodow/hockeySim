@@ -4,7 +4,6 @@ MAXCHANCE = 100
 
 
 class BruhException(Exception):
-    '''exception for "huh"'''
     def __init__(self):
         print('how did you even MANAGE to screw that up?')
         input('>>> press enter to continue')
@@ -17,7 +16,6 @@ case = lambda lvl: randint(0, lvl) == randint(0, lvl)
 
 
 def secs_to_mins_secs(seconds: int) -> str:
-    '''Takes an input such as 1200 and converts it to MM:SS format such as 20:00'''
     mins = 0
     osc = seconds
 
@@ -32,7 +30,6 @@ def secs_to_mins_secs(seconds: int) -> str:
 
 
 def create_actions_list(action_chances: dict) -> list:
-    '''Create a list of actions based on a dict'''
     r = []
     chance_of_penalty = action_chances['penalty']
     chance_of_sog = action_chances['sog']
