@@ -335,23 +335,49 @@ if goals['TEAM 1'] != 0:
 else:
     goalie2SVP = 100
 
-# Create final scoreboard
-endingOut = f'''
-\tFINAL SCORE: {goals['TEAM 1']}-{goals['TEAM 2']}{endResultType}
-\tSOG - TEAM 1: {shotsOnGoal['TEAM 1']}
-\tSOG - TEAM 2: {shotsOnGoal['TEAM 2']}
-\tGOALIE SV% - TEAM 1: {goalie1SVP}%
-\tGOALIE SV% - TEAM 2: {goalie2SVP}%
+if __name__ == '__main__':
+    # Create final scoreboard
+    endingOut = f'''
+    \tFINAL SCORE: {goals['TEAM 1']}-{goals['TEAM 2']}{endResultType}
+    \tSOG - TEAM 1: {shotsOnGoal['TEAM 1']}
+    \tSOG - TEAM 2: {shotsOnGoal['TEAM 2']}
+    \tGOALIE SV% - TEAM 1: {goalie1SVP}%
+    \tGOALIE SV% - TEAM 2: {goalie2SVP}%
 
-\tPENALTIES - TEAM 1: {pastPenalties['TEAM 1']}
-\tPENALTIES - TEAM 2: {pastPenalties['TEAM 2']}
-'''
+    \tPENALTIES - TEAM 1: {pastPenalties['TEAM 1']}
+    \tPENALTIES - TEAM 2: {pastPenalties['TEAM 2']}
+    '''
 
-endingOut += f'\n{winner} won the game!'
-output = '\n'.join(out) + '\n\n' + endingOut
+    endingOut += f'\n{winner} won the game!'
+    output = '\n'.join(out) + '\n\n' + endingOut
 
-# PRINT OUTPUT :D
-print(output)
+    # PRINT OUTPUT :D
+    print(output)
 
-# For running the file directly
-endInput = input('\n\n>>> press enter to continue')
+    # For running the file directly
+    endInput = input('\n\n>>> press enter to continue')
+else:
+    # Scoring system: goal - 3p | SOG - 1p | penalty - -2p | goalie sv% > 90 - 2
+    team1score = goals['TEAM 1'] * 4 + shotsOnGoal['TEAM 1'] + \
+        pastPenalties['TEAM 1'] * -2 + 2 if goalie1SVP > 90 else 0
+    team2score = goals['TEAM 2'] * 4 + shotsOnGoal['TEAM 2'] + \
+        pastPenalties['TEAM 2'] * -2 + 2 if goalie2SVP > 90 else 0
+    results = {
+        'winner': winner,
+        'TEAM 1': {
+            'goals': goals['TEAM 1'],
+            'penalties': pastPenalties['TEAM 1'],
+            'sog': shotsOnGoal['TEAM 1'],
+            'g_sv%': goalie1SVP,
+            'score': team1score
+        },
+        'TEAM 2': {
+            'goals': goals['TEAM 2'],
+            'penalties': pastPenalties['TEAM 2'],
+            'sog': shotsOnGoal['TEAM 2'],
+            'g_sv%': goalie2SVP,
+            'score': team2score
+        }
+    }
+
+    def return_game(): return results
