@@ -1,15 +1,14 @@
-from random import randint
+from random import randrange
 
 MAXCHANCE = 100
 
 
-class BruhException(Exception):
-    def __init__(self):
-        print('how did you even MANAGE to screw that up?')
-        input('>>> press enter to continue')
-
+class SwayTooLargeError(Exception):
     def __str__(self):
-        return 'how did you even MANAGE to screw that up?\n>>> press enter to continue'
+        return 'Sway must be between -149 and 149.'
+
+
+def fast_randint(s, b): return randrange(s, b + 1)
 
 
 def secs_to_mins_secs(seconds: int) -> str:
@@ -39,24 +38,22 @@ def create_actions_list(action_chances: dict) -> list:
 
 
 def case(lvl):
-    num1 = randint(0, lvl)
-    num2 = randint(0, lvl)
+    num1 = fast_randint(0, lvl)
+    num2 = fast_randint(0, lvl)
     return num1 == num2
+
 
 # Sway: Bases the odds for one team over the other. The farther the param is from 0
 # the more the odds lean toward the team. Use negative number for TEAM 1 or positive
 # number for TEAM 2.
-def simulate(sway: int=0):
+
+
+def simulate(sway: int = 0, periodTime: int = 400):
     out = []
-    userTime = input('Period time in MM:SS (20:00): ')
-    userTime = '20:00' if not userTime else userTime
-    userTime = userTime.split(':')
-    gameTime = int(userTime[0]) * 60 + int(userTime[1])
-    periodTime = int(round(gameTime / 3))
+    if sway > 150 or sway < -150: raise SwayTooLargeError
 
     # teamActionsList: creates a list for each period containing 1s and 2s. The main FOR loop then
     # retrieves which team the action happens to depending on the team in the list.
-
     # Structure:
     # [
     #   [ # period one array
@@ -76,10 +73,10 @@ def simulate(sway: int=0):
         team = '1' if xteam == '2' else '2'
         xteamNegChance = abs(sway)
         teamActionsList = [[
-                int(xteam if case(xteamNegChance) else team) for __ in range(periodTime - 1)
-            ] for _ in range(3)]
+            int(xteam if case(xteamNegChance) else team) for __ in range(periodTime - 1)
+        ] for _ in range(3)]
     else:
-        teamActionsList = [[randint(1, 2) for __ in range(periodTime - 1)] for _ in range(3)]
+        teamActionsList = [[fast_randint(1, 2) for __ in range(periodTime - 1)] for _ in range(3)]
 
     occurrences = (
         None,  # because we only want 1s and 2s :)
@@ -96,9 +93,7 @@ def simulate(sway: int=0):
         out.append("The teams seem equally matched! We'll see who'll win...")
     out.append('\n')
 
-    maxTimeBetweenThingsHappening = input(f"Time between things happening (default: {round(gameTime / 120)}): ")
-
-    maxTimeBetweenThingsHappening = round(gameTime / 120) if not maxTimeBetweenThingsHappening else None
+    maxTimeBetweenThingsHappening = 10
 
     # Period for loop
     period = 1
@@ -133,7 +128,7 @@ def simulate(sway: int=0):
     # Create lists of odds/actions for teams
     startingOdds = {
         'penalty': 3,
-        'sog': 30
+        'sog': 40
     }
     odds = {
         'TEAM 1': startingOdds,
@@ -196,7 +191,7 @@ def simulate(sway: int=0):
                         currentPenalties['TEAM 2'][pi2] -= 1
 
             # init stuff
-            rand = randint(0, MAXCHANCE)
+            rand = fast_randint(0, MAXCHANCE)
 
             # Determines team that this play will be on
             team = 'TEAM ' + str(teamActionsList[period - 1][s - 1])
@@ -210,7 +205,7 @@ def simulate(sway: int=0):
             # Handling different events
             match action:
                 case 'penalty':
-                    out.append(f"{team} got a penalty for {possiblePenalties[randint(0, 8)]} \
+                    out.append(f"{team} got a penalty for {possiblePenalties[fast_randint(0, 8)]} \
 {timeIntoPeriod} into period {period}")
                     currentPenalties[team].append(90)
                     pastPenalties[team] += 1
@@ -220,23 +215,20 @@ def simulate(sway: int=0):
                     elif team == 'TEAM 2':
                         odds['TEAM 1']['sog'] += sogOddsChangeOnPenalty['inc']
                         odds['TEAM 2']['sog'] -= sogOddsChangeOnPenalty['dec']
-                    else:
-                        raise BruhException
 
                 case 'sog':
-                    if case(50):
+                    if case(8):
                         frmt = f'{team} scored a goal {timeIntoPeriod} into period {str(period)}!'
                         out.append(frmt)
-                        if case(10):
+                        if case(15):
                             waiveReasons = ['a penalty', 'an offside', 'goalie interference']
                             out.append(f"Wait... it's under review... there might have been\
-{waiveReasons[randint(0, 2)]}!")
+{waiveReasons[fast_randint(0, 2)]}!")
                             if case(3):
                                 out.append(f"The goal has been waived! Unlucky for {team}")
                                 lastAction = ''
                             else:
-                                out.append(f"They didn't have enough evidence! It's still a goal! \
-{team} sure is lucky...")
+                                out.append(f"It's still a goal!")
                                 goals[team] += 1
                                 shotsOnGoal[team] += 1
                                 lastAction = 'g'
@@ -287,16 +279,18 @@ def simulate(sway: int=0):
                 continue
             if not case(10):
                 continue
-            rand = randint(0, MAXCHANCE)
-            team = 'TEAM ' + str(randint(1, 2))
+            secsIntoOvertime = secs_to_mins_secs(s)
+            rand = fast_randint(0, MAXCHANCE)
+            team = 'TEAM ' + str(fast_randint(1, 2))
             action = actions[team][rand]
             if action == 'sog':
                 if case(25):
                     goals[team] += 1
-                    out.append(f'\tOVERTIME GOAL FOR {team}! \nScore: {goals["TEAM 1"]}-{goals["TEAM 2"]}')
+                    out.append(f'\tOVERTIME GOAL FOR {team} {secsIntoOvertime} INTO OVERTIME! \
+\nScore: {goals["TEAM 1"]}-{goals["TEAM 2"]}')
                 else:
                     shotsOnGoal[team] += 1
-                    out.append(f'Shot on goal by {team}')
+                    out.append(f'Shot on goal by {team} {secsIntoOvertime} into overtime')
             sinceLast = 0
 
     # "Regular" shootout
@@ -310,31 +304,33 @@ def simulate(sway: int=0):
                 goals[team] += 1
                 out.append(f'Shootout goal by {team}!')
             else:
-                reasonForMiss = str(reasonsForMiss[randint(0, 5)])
+                reasonForMiss = str(reasonsForMiss[fast_randint(0, 5)])
                 xteam = 'TEAM ' + '1' if team[-1] == '1' else '2'
                 out.append(reasonForMiss.replace('_TEAM_', team).replace('_XTEAM_', xteam))
 
     # "Goalies are cracked" shootout
     if goals['TEAM 1'] == goals['TEAM 2']:
-        winnerYet = False
         soRound = 0
-        while not winnerYet:
+        while True:
             soRound += 1
+            shootoutRoundAsStr: str = str(soRound)
             if case(8):
-                out.append('TEAM 1 scored a goal in round' + str(soRound) + '. Will TEAM 2 be able to tie it up?')
+                out.append(f'TEAM 1 scored a goal in round {shootoutRoundAsStr}. Will TEAM 2 be able to tie it up?')
                 goals['TEAM 1'] += 1
             else:
-                out.append("TEAM 1 wasn't able to score in round"
-                           + str(soRound) + ". Will TEAM 2 be able to score?")
+                out.append(f"TEAM 1 wasn't able to score in round {shootoutRoundAsStr}. Will TEAM 2 be able to score?")
                 if case(8):
-                    out.append("TEAM 2 SCORED IN ROUND " + str(soRound) + "! What a goal! TEAM 2 wins!")
+                    out.append(f"TEAM 2 SCORED IN ROUND {shootoutRoundAsStr}! What a goal! TEAM 2 wins!")
                     goals['TEAM 2'] += 1
+                    break
                 continue
             if case(8):
-                out.append("TEAM 2 scored as well! Time for round " + str(soRound) + '.')
+                out.append(f"TEAM 2 scored as well! Time for round {shootoutRoundAsStr}.")
                 goals['TEAM 2'] += 1
+                continue
             else:
                 out.append("TEAM 2 COULDN'T MAKE IT! TEAM 1 WINS!")
+                break
 
     # Determines winner of game
     if goals['TEAM 1'] > goals['TEAM 2']:
@@ -353,6 +349,9 @@ def simulate(sway: int=0):
         goalie2SVP = round((1 - goals['TEAM 1'] / shotsOnGoal['TEAM 1']) * 100, 2)
     else:
         goalie2SVP = 100
+    # Team rating:
+    # Goals are worth 4 points, SOG are worth 1 point for two, penalties are -2 points each, and goalie having
+    # a sv% above 90% gives 2 points.
     return {
         'winner': winner,
         'endResultType': endResultType,
@@ -361,21 +360,25 @@ def simulate(sway: int=0):
             'goals': goals['TEAM 1'],
             'penalties': pastPenalties['TEAM 1'],
             'sog': shotsOnGoal['TEAM 1'],
-            'g_sv%': goalie1SVP
+            'g_sv%': goalie1SVP,
+            'rating': goals['TEAM 1'] * 4 + round(shotsOnGoal['TEAM 1'] / 2) + pastPenalties['TEAM 1'] * -2 +
+            2 if goalie1SVP > 90 else 0
         },
         'TEAM 2': {
             'goals': goals['TEAM 2'],
             'penalties': pastPenalties['TEAM 2'],
             'sog': shotsOnGoal['TEAM 2'],
-            'g_sv%': goalie2SVP
+            'g_sv%': goalie2SVP,
+            'rating': goals['TEAM 2'] * 4 + round(shotsOnGoal['TEAM 2'] / 2) + pastPenalties['TEAM 2'] * -2 +
+            2 if goalie2SVP > 90 else 0
         }
     }
 
 
-results = simulate()
-
 if __name__ == '__main__':
     # Create final scoreboard
+    results = simulate()
+
     endingOut = f'''
     \tFINAL SCORE: {results['TEAM 1']['goals']}-{results['TEAM 2']['goals']}{results['endResultType']}
     \tSOG - TEAM 1: {results['TEAM 1']['sog']}
@@ -395,13 +398,3 @@ if __name__ == '__main__':
 
     # For running the file directly
     endInput = input('\n\n>>> press enter to continue')
-else:
-    # Scoring system: goal - 3p | SOG - 1p | penalty - -2p | goalie sv% > 90 - 2
-    team1score = results['TEAM 1']['goals'] * 4 + results['TEAM 1']['sog'] + \
-        results['TEAM 1']['penalties'] * -2 + 2 if results['TEAM 1']['g_sv%'] > 90 else 0
-    team2score = results['TEAM 2']['goals'] * 4 + results['TEAM 2']['sog'] + \
-        results['TEAM 2']['penalties'] * -2 + 2 if results['TEAM 2']['g_sv%'] > 90 else 0
-    results['TEAM 1']['score'] = team1score
-    results['TEAM 2']['score'] = team2score
-
-    def return_game(): return results
