@@ -3,9 +3,9 @@ from random import randrange
 MAXCHANCE = 100
 
 
-class SwayTooLargeError(Exception):
+class TooMuchBiasException(Exception):
     def __str__(self):
-        return 'Sway must be between -149 and 149.'
+        return 'Bias must be between -149 and 149.'
 
 
 def fast_randint(s, b): return randrange(s, b + 1)
@@ -43,14 +43,14 @@ def case(lvl):
     return num1 == num2
 
 
-# Sway: Bases the odds for one team over the other. The farther the param is from 0
+# Bias: Bases the odds for one team over the other. The farther the param is from 0
 # the more the odds lean toward the team. Use negative number for TEAM 1 or positive
 # number for TEAM 2.
 
 
-def simulate(sway: int = 0, periodTime: int = 400):
+def simulate(bias: int = 0, periodTime: int = 400):
     out = []
-    if sway > 150 or sway < -150: raise SwayTooLargeError
+    if bias > 150 or bias < -150: raise TooMuchBiasException
 
     # teamActionsList: creates a list for each period containing 1s and 2s. The main FOR loop then
     # retrieves which team the action happens to depending on the team in the list.
@@ -67,11 +67,11 @@ def simulate(sway: int = 0, periodTime: int = 400):
     #   ]
     # ]
     # upper comment shows use of this list
-    if sway != 0:
+    if bias != 0:
         # xteam: NOT team that has a higher change
-        xteam = '1' if sway < 0 else '2'
+        xteam = '1' if bias < 0 else '2'
         team = '1' if xteam == '2' else '2'
-        xteamNegChance = abs(sway)
+        xteamNegChance = abs(bias)
         teamActionsList = [[
             int(xteam if case(xteamNegChance) else team) for __ in range(periodTime - 1)
         ] for _ in range(3)]
@@ -101,13 +101,13 @@ def simulate(sway: int = 0, periodTime: int = 400):
     possiblePenalties = (
         'TRIPPING',
         'HOOKING',
-        'TRASH TALK',
         'UNSPORTSMANLIKE CONDUCT',
         'CROSS-CHECKING',
         'SLASHING',
         'HOLDING',
         'HIGH-STICKING',
-        'INTERFERENCE'
+        'INTERFERENCE',
+        'ROUGHING'
     )
     # How much the SOG odds change
     sogOddsChangeOnPenalty = {
